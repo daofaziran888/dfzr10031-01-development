@@ -60,6 +60,41 @@
       <span v-if="errorMessage" class="error-text">{{ errorMessage }}</span>
     </footer>
 
+    <section class="panel">
+      <h3 class="panel-title">告警判定记录</h3>
+      <p class="panel-desc">按实际发布的指标结果快照判定；计算失败期间展示上次完整结果的判定依据，可对照每次触发时的输入批次。</p>
+      <form class="filter-bar" @submit.prevent="loadEvaluations">
+        <label class="filter-item">
+          <span>规则编号</span>
+          <input v-model="evalRuleFilter" placeholder="如 ALER-0003" />
+        </label>
+        <label class="filter-item">
+          <span>统计月份</span>
+          <input v-model="evalMonthFilter" placeholder="如 2026-10" />
+        </label>
+        <button class="btn" type="submit">查询判定</button>
+        <button class="btn ghost" type="button" @click="resetEvalFilters">重置条件</button>
+      </form>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th v-for="column in evalColumns" :key="column">{{ column }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in evalRows" :key="String(row.id)">
+            <td v-for="column in evalColumns" :key="column">
+              <strong v-if="column === '判定结果' && row[column] === '已触发'" class="triggered-text">{{ row[column] }}</strong>
+              <template v-else>{{ row[column] ?? '—' }}</template>
+            </td>
+          </tr>
+          <tr v-if="!evalRows.length">
+            <td :colspan="evalColumns.length" class="empty-state">暂无告警判定记录，发布月度快照后自动生成</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
     <Teleport to="body">
       <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
         <div class="modal-card">
@@ -103,6 +138,10 @@ const filters = ref<Record<string, string>>({})
 const filterFields = columns.slice(0, 3)
 const showCreateModal = ref(false)
 const createFields = ref<Record<string, string>>({})
+const evalColumns = ["判定编号", "规则编号", "统计月份", "快照编号", "输入批次", "指标金额", "阈值条件", "判定结果", "变化说明", "判定时间"]
+const evalRows = ref<Row[]>([])
+const evalRuleFilter = ref('')
+const evalMonthFilter = ref('')
 
 function updateStats() {
   const data = rows.value
@@ -155,6 +194,7 @@ async function runAction(action: string, row: Row) {
       throw new Error('智能告警动作未生效，请稍后重试')
     }
     await reload()
+    await loadEvaluations()
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '智能告警操作失败'
   }
@@ -177,5 +217,54 @@ async function reload() {
   }
 }
 
-onMounted(reload)
+async function loadEvaluations() {
+  errorMessage.value = ''
+  const params = new URLSearchParams()
+  if (evalRuleFilter.value.trim()) {
+    params.set('rule', evalRuleFilter.value.trim())
+  }
+  if (evalMonthFilter.value.trim()) {
+    params.set('month', evalMonthFilter.value.trim())
+  }
+  try {
+    const response = await request(`${ENDPOINT}/evaluations?${params.toString()}`)
+    if (!response.ok) {
+      throw new Error('告警判定记录读取失败')
+    }
+    const payload = await response.json()
+    evalRows.value = payload.items ?? []
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : '告警判定记录读取失败'
+  }
+}
+
+function resetEvalFilters() {
+  evalRuleFilter.value = ''
+  evalMonthFilter.value = ''
+  void loadEvaluations()
+}
+
+onMounted(() => {
+  void reload()
+  void loadEvaluations()
+})
 </script>
+
+<style scoped>
+.panel {
+  margin-top: 20px;
+}
+.panel-title {
+  font-size: 15px;
+  margin: 0 0 4px;
+}
+.panel-desc {
+  color: var(--muted);
+  font-size: 12px;
+  margin: 0 0 10px;
+}
+.triggered-text {
+  color: #b42318;
+}
+</style>
+

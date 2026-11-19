@@ -23,6 +23,16 @@ def export_entries() -> dict[str, Any]:
     return {"module": "alert", "total": total, "items": items}
 
 
+@router.get("/evaluations")
+def list_evaluations(
+    rule: str | None = Query(default=None, description="按规则编号检索"),
+    month: str | None = Query(default=None, description="按统计月份过滤，格式 YYYY-MM"),
+) -> dict[str, Any]:
+    """告警判定记录：按实际发布的指标结果快照判定，含触发状态、输入批次与变化说明。"""
+    items = service.list_evaluations(rule_code=rule, month=month)
+    return {"total": len(items), "items": items}
+
+
 @router.get("", response_model=PageResult[dict])
 def list_entries(
     request: Request,

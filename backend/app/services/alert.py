@@ -6,6 +6,7 @@ from typing import Any
 from app.store import store
 
 MODULE = "alert"
+EVAL_MODULE = "alert_eval"
 REQUIRED_FIELDS = ["规则编号", "告警名称", "监控指标"]
 STATUS_ORDER = ["草稿", "已配置", "生效中", "已停用"]
 ACTION_RULES = {"保存配置": "已配置", "启用规则": "生效中", "停用规则": "已停用"}
@@ -36,6 +37,20 @@ class AlertService:
 
     def get_entry(self, entry_id: int) -> dict[str, Any] | None:
         return store.find(MODULE, entry_id)
+
+    def list_evaluations(
+        self,
+        *,
+        rule_code: str | None = None,
+        month: str | None = None,
+    ) -> list[dict[str, Any]]:
+        """告警判定记录：值班核对触发状态与其关联的数据源批次，最新的排前面。"""
+        rows = store.rows(EVAL_MODULE)
+        if rule_code:
+            rows = [row for row in rows if rule_code in str(row.get("规则编号", ""))]
+        if month:
+            rows = [row for row in rows if str(row.get("统计月份")) == month]
+        return sorted(rows, key=lambda row: int(row.get("id", 0)), reverse=True)
 
     def create_entry(self, values: dict[str, Any]) -> tuple[dict[str, Any] | None, list[str]]:
         missing = [field for field in REQUIRED_FIELDS if not str(values.get(field) or "").strip()]

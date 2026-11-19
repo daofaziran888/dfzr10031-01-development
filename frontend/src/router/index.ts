@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import HomeDashboard from '@/views/Dashboard.vue'
 const MetricDef = () => import('@/views/metric_def/index.vue')
+const MetricRun = () => import('@/views/metric_run/index.vue')
 const Dimension = () => import('@/views/dimension/index.vue')
 const Dataset = () => import('@/views/dataset/index.vue')
 const Experiment = () => import('@/views/experiment/index.vue')
@@ -25,6 +26,7 @@ const router = createRouter({
   routes: [
     { path: '/', name: 'home', component: HomeDashboard },
     { path: '/metric_def', name: 'metric_def', component: MetricDef },
+    { path: '/metric_run', name: 'metric_run', component: MetricRun },
     { path: '/dimension', name: 'dimension', component: Dimension },
     { path: '/dataset', name: 'dataset', component: Dataset },
     { path: '/experiment', name: 'experiment', component: Experiment },

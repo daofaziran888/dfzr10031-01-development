@@ -41,6 +41,40 @@ class MetricDefEntry(BaseModel):
     field_6: str | None = None  # 精度位数
     field_7: str | None = None  # 口径版本
 
+class MetricRunEntry(BaseModel):
+    """指标结果快照明细结构。"""
+
+    field_0: str | None = None  # 快照编号
+    field_1: str | None = None  # 指标编号
+    field_2: str | None = None  # 统计月份
+    field_3: str | None = None  # 口径版本
+    field_4: str | None = None  # 输入批次
+    field_5: str | None = None  # 指标金额
+    field_6: str | None = None  # 交易笔数
+    field_7: str | None = None  # 快照状态
+
+class MetricTxnEntry(BaseModel):
+    """交易源记录明细结构。"""
+
+    field_0: str | None = None  # 交易编号
+    field_1: str | None = None  # 业务日期
+    field_2: str | None = None  # 实付金额
+    field_3: str | None = None  # 数据集编号
+    field_4: str | None = None  # 输入批次
+    field_5: str | None = None  # 记录状态
+
+class AlertEvalEntry(BaseModel):
+    """告警判定记录明细结构。"""
+
+    field_0: str | None = None  # 判定编号
+    field_1: str | None = None  # 规则编号
+    field_2: str | None = None  # 统计月份
+    field_3: str | None = None  # 快照编号
+    field_4: str | None = None  # 输入批次
+    field_5: str | None = None  # 指标金额
+    field_6: str | None = None  # 判定结果
+    field_7: str | None = None  # 变化说明
+
 class DimensionEntry(BaseModel):
     """分析维度明细结构。"""
 
